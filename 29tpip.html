@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recursive Maze Solver</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;  /* Stack title and maze vertically */
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+      margin: 0;
+    }
+    h1 {
+      font-family: "Comic Sans MS", "Comic Sans", cursive;
+      color: #333;
+      margin-bottom: 20px;  /* Space between title and maze */
+      font-size: 2em;
+    }
+    .maze {
+      display: grid;
+      grid-template-columns: repeat(10, 40px);
+      grid-template-rows: repeat(10, 40px);
+      gap: 2px;
+    }
+    .cell {
+      width: 40px;
+      height: 40px;
+      background-color: #ccc;
+      border: 1px solid #999;
+    }
+    .wall {
+      background-color: #444;
+    }
+    .start {
+      background-color: #4caf50;
+    }
+    .end {
+      background-color: #f44336;
+    }
+    .path {
+      background-color: #2196f3;
+    }
+    .visited {
+      background-color: #ffeb3b;
+    }
+  </style>
+</head>
+<body>
+  <h1>Recursive Maze Solver</h1>  <!-- Title above the maze -->
+  <div class="maze" id="maze"></div>
+
+  <script>
+    const maze = [
+      [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 1, 0, 1, 1, 1, 0, 1, 0, 0],
+      [0, 0, 0, 1, 0, 0, 0, 1, 1, 0],
+      [1, 1, 0, 1, 0, 1, 1, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 1, 0, 1, 1],
+      [0, 1, 1, 1, 1, 0, 1, 0, 0, 0],
+      [0, 1, 0, 1, 0, 0, 1, 1, 1, 0],
+      [0, 0, 0, 1, 1, 1, 1, 0, 1, 0],
+      [0, 1, 0, 1, 0, 0, 0, 0, 1, 0],
+      [0, 0, 0, 1, 1, 1, 0, 0, 0, 0]
+    ];
+
+    const rows = maze.length;
+    const cols = maze[0].length;
+    const start = { x: 0, y: 0 };
+    const end = { x: 9, y: 9 };
+
+    const mazeContainer = document.getElementById("maze");
+
+    // MAZE
+    function createMaze() {
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const cell = document.createElement("div");
+          cell.classList.add("cell");
+          if (maze[y][x] === 1) cell.classList.add("wall");
+          if (x === start.x && y === start.y) cell.classList.add("start");
+          if (x === end.x && y === end.y) cell.classList.add("end");
+          cell.id = `cell-${y}-${x}`;
+          mazeContainer.appendChild(cell);
+        }
+      }
+    }
+
+    // Recursive function
+    async function solveMaze(x, y) {
+      if (x === end.x && y === end.y) return true;  // Reached end
+      if (x < 0 || y < 0 || x >= cols || y >= rows || maze[y][x] !== 0) return false;  // Check boundaries or walls
+
+      // Mark current cell as part of the path
+      maze[y][x] = 2;
+      document.getElementById(`cell-${y}-${x}`).classList.add("path");
+
+      return new Promise((resolve) => {
+        setTimeout(async () => {
+          // moving in all directions
+          if (await solveMaze(x + 1, y) || await solveMaze(x, y + 1) || await solveMaze(x - 1, y) || await solveMaze(x, y - 1)) {
+            resolve(true);
+          } else {
+            // Backtrack if no path is found
+            maze[y][x] = 0;
+            document.getElementById(`cell-${y}-${x}`).classList.remove("path");
+            document.getElementById(`cell-${y}-${x}`).classList.add("visited");
+            resolve(false);
+          }
+        }, 250);  // Visualization delay
+      });
+    }
+
+    async function startSolving() {
+      await solveMaze(start.x, start.y);
+    }
+
+    createMaze();
+    startSolving();
+  </script>
+</body>
+</html>
